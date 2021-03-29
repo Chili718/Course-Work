@@ -1,0 +1,16 @@
+INSERT INTO warehouse (WhNumb, City, Floors) Values ('WH3', 'Hilton Head', 2);
+
+INSERT INTO employee (WhNumb, EmpNumb, Salary, YearHired) Values ('WH1', 'E9', 20000, 1997);
+INSERT INTO employee (WhNumb, EmpNumb, Salary, YearHired) Values ('WH3', 'E10', 28000, 1995);
+INSERT INTO employee (WhNumb, EmpNumb, Salary, YearHired) Values ('WH1', 'E11', 29000, 1994);
+INSERT INTO employee (WhNumb, EmpNumb, Salary, YearHired) Values ('WH2', 'E12', 20000, 1998);
+INSERT INTO employee (WhNumb, EmpNumb, Salary, YearHired) Values ('WH1', 'E13', 23000, 1994);
+
+Select * from warehouse;
+Select * from employee;
+
+Select EmpNumb from employee where Salary = 20000;
+
+Select warehouse.City from employee, warehouse where employee.Salary > 25000 and employee.WhNumb = warehouse.WhNumb;
+
+Select sum(employee.salary) from employee, warehouse where warehouse.city = 'ROCK HILL' and employee.WhNumb = warehouse.WhNumb;

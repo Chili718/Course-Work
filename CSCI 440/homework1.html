@@ -1,0 +1,131 @@
+<!--
+Name: Jon Tice
+
+Title: Homework 1
+
+Description: Displays two moving triangles.
+
+Class: CSCI 440
+
+Date: 9/9/18
+-->
+<html>
+<head>
+<title>Moving Triangles</title>
+
+<!-- ---- Create the two Shaders ---- -->
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+uniform mat4 modelMatrix;
+
+void main()
+{
+    // gl_Position = vPosition;
+    gl_Position = modelMatrix * vPosition;
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+void main()
+{
+    gl_FragColor = vec4( 0.7, 0.0, 1.0, 1.0 );
+}
+</script>
+
+
+<!-- ---- Include Angel's Libraries ---- -->
+<script type="text/javascript" src="webgl-utils.js"></script>
+<script type="text/javascript" src="initShaders.js"></script>
+<script type="text/javascript" src="MV.js"></script>
+
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - -
+- - - - - - - - - -  Primary Code  - - - - - - - -
+- - - - - - - - - - - - - - - - - - - - - - - - -->
+<script>
+
+var gl;                 	// graphics library instance
+var modelMatrixLocation; 	// location in GPU
+var program;                    // GPU instructions
+var amount = 0.0;               // movement amount
+
+<!-------------------------------------------------->
+
+function render()
+{
+    var myMatrix;	   		// model matrix
+
+    // clear the old image
+    gl.clear ( gl.COLOR_BUFFER_BIT );
+
+    // update the distance 
+    amount += 0.01;
+    myMatrix = translate ( vec3 (amount, amount, amount) );
+
+    // pass new matrix numbers to GPU
+    gl.uniformMatrix4fv (modelMatrixLocation, false, flatten(myMatrix) );
+
+    // redraw
+    gl.drawArrays ( gl.TRIANGLES, 0, 6 );
+    requestAnimFrame ( render );
+}
+
+<!-------------------------------------------------->
+
+window.onload = function init()
+{
+    // Createa a drawing area in the browser window
+    var canvas = document.getElementById( "gl-canvas" );
+    gl = WebGLUtils.setupWebGL( canvas );
+    if ( !gl ) { alert( "WebGL isn't available" ); }
+
+    // Create an array with 3 points 
+    var vertices = [
+	 0.0,  -1.0, 0.0,
+        -0.5, 0.0, 0.0,
+	-1.0, -1.0, 0.0,
+	 0.0, 0.0, 0.0,
+	 1.0, 0.0, 0.0,
+	 0.5, 1.0, 0.0
+    ];
+
+    // Create space on the GPU
+    var myBuffer = gl.createBuffer();
+    gl.bindBuffer ( gl.ARRAY_BUFFER, myBuffer);
+    // Send data points to the GPU
+    gl.bufferData ( gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+    // get ready to draw
+    gl.viewport( 0, 0, canvas.width, canvas.height );
+    gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
+
+    // send GPU instructions
+    program = initShaders( gl, "vertex-shader", "fragment-shader" );
+    gl.useProgram( program );
+    
+    // Associate our shader variables with our data buffer
+    var vPosition = gl.getAttribLocation( program, "vPosition" );
+    gl.vertexAttribPointer( vPosition, 3, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vPosition );
+
+    // Associate CPU's model matrix with GPU's memory 
+    modelMatrixLocation = gl.getUniformLocation ( program, "modelMatrix" ); 
+
+    // DRAW IT !!!
+    render();
+
+};
+
+<!-------------------------------------------------->
+
+</script>
+</head>
+
+
+<body bgcolor=grey>
+<h2 align=center>Here are moving triangles:</h2>
+<canvas id="gl-canvas" width="500" height="500"> You must use an updated browser. </canvas>
+</body>
+</html>

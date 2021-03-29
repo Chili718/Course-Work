@@ -1,0 +1,84 @@
+# Project 2 - Program 1
+#
+#Reads in a pay rate then calculates and prints 
+#the persons salary according to the hours entered 10 times
+#
+#Jon Tice
+#
+#CSCI 211
+#
+#2/11/2017
+.data
+payRatePrompt: .asciiz "\nEnter a pay rate (In whole numbers): "
+enterHoursPrompt: .asciiz "\nEnter the hours worked: "
+salaryPrompt: .asciiz "\nSalary: $"
+hoursPrompt: .asciiz "\nHours Worked: "
+
+.text
+main:
+	#Reads in payrate and store it in $t1
+	la $a0, payRatePrompt
+	li $v0, 4
+	syscall
+	li $v0, 5
+	syscall
+	move $t1, $v0
+
+	#setting up for loop that will repaeat 10 times
+	li $t6, 0 #i = 0
+	li $t7, 10
+	
+	#for loop
+loop:
+	#Reads in hours and stores in $t2
+	la $a0, enterHoursPrompt
+	li $v0, 4
+	syscall
+	li $v0, 5
+	syscall
+	move $t2, $v0
+	
+	# "if statement" for checking if hours > 40
+	bgt $t2, 40, ifState
+	#if hours < 40
+	mult $t1, $t2
+	mflo $t5 #final salary 
+	#once salary is calculated it will branch accordingly
+	#to printing the hours and calculated salary
+	b finishLoop  
+ifState: #if hours > 40  
+	addi $t3, $t2, -40 #number of overtime hours in $t3
+	sub $t2, $t2, $t3 #number of regular pay hours in $t2 aka 40 hours
+	mult $t1, $t2 #calculate pay from non overtime hours
+	mflo $t5 
+	#add both hours back together to get total to be printed later
+	add $t2, $t2, $t3 
+	#multiplied normal payrate with overtime hours 
+	#then doubled the total to get overtime pay
+	mult $t3, $t1
+	mflo $t3
+	add $t3, $t3, $t3
+	#add both normal and overtime pay together for total salary
+	add $t5, $t5, $t3
+finishLoop:
+	#print hours
+	la $a0, hoursPrompt
+	li $v0, 4
+	syscall
+	move $a0, $t2
+	li $v0, 1
+	syscall
+	#print salary
+	la $a0, salaryPrompt
+	li $v0, 4
+	syscall
+	move $a0, $t5
+	li $v0, 1
+	syscall
+	#incrament $t6 and repeat loop if $t6 < 10
+	addi $t6, $t6, 1
+	blt $t6, $t7, loop
+		
+	#terminate program
+	li $v0, 10
+	syscall

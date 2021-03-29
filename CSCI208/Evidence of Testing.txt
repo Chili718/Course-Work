@@ -1,0 +1,11 @@
+Jon Tice
+CSCI 208
+
+Evidence of Testing:
+Throughout testing of the entire program only two users were allowed as input.
+When the program was finsihed a full twelve users were input and tested through selecting records.
+The ID number cannot be longer than an integers length or it creates a huge error
+For the names if you accidentally entered the first and last name is skipped the rest of the program and needed to be terminated
+Tested code that did not allow for an invalid RR number to be entered i.e. -1
+The file user.dat is created and used to store and read the users inputed data
+

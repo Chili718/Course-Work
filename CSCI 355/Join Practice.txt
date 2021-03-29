@@ -1,0 +1,20 @@
+CREATE VIEW ProductView AS SELECT name, qty*price FROM Product;
+SELECT * FROM ProductView;
+
+SELECT name, category FROM Product;
+
+SELECT Product.name, Category.name FROM Product LEFT JOIN Category ON Product.category = Category.id;
+
+SELECT Product.name, Category.name, Company.name FROM Product LEFT JOIN Category ON Product.category = Category.id LEFT JOIN Company ON Product.company = Company.id;
+
+SELECT Product.name, Category.name, Company.name FROM Product JOIN Category ON Product.category = Category.id LEFT JOIN Company ON Product.company = Company.id;
+
+UPDATE Company SET name = "Stanley Black and Decker" WHERE name = "Stanley";
+
+SELECT Product.name FROM Product JOIN Category ON Product.category = Category.id JOIN Company ON Product.company = Company.id WHERE Category.name = "Tools" AND Product.price > 10 AND Company.name = "Stanley Black and Decker";
+
+5--------------------------------------------
+DELETE FROM Company WHERE name = "LEGO";
+
+
+

@@ -1,0 +1,519 @@
+<!--
+Name: Jon Tice
+
+Title: Homework 5
+
+Description: The object moves through an enviornment with a perspective view 
+
+Date: 10/13/18
+-->
+<html>
+<head>
+<title>3D Object Moving with a Perspective View</title>
+
+<!-- ---- Create the two Shaders ---- -->
+<script id="vertex-shader" type="x-shader/x-vertex">
+uniform mat4 projMatrix;
+attribute vec4 vPosition;
+uniform mat4 modelMatrix;
+
+void main()
+{
+    //gl_Position = vPosition;
+    gl_Position = projMatrix * modelMatrix * vPosition;
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+uniform vec4 fColor;
+
+void main()
+{
+    gl_FragColor = fColor;
+    //gl_FragColor = vec4( 0.7, 0.0, 1.0, 1.0 );
+}
+</script>
+
+
+<!-- ---- Include Angel's Libraries ---- -->
+<script type="text/javascript" src="webgl-utils.js"></script>
+<script type="text/javascript" src="initShaders.js"></script>
+<script type="text/javascript" src="MV.js"></script>
+
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - -
+- - - - - - - - - -  Primary Code  - - - - - - - -
+- - - - - - - - - - - - - - - - - - - - - - - - -->
+<script>
+
+var gl;				// graphics library instance
+var program;                    // GPU instructions
+var fColorLocation, modelMatrixLoc;
+var myMatrix;
+var projMatrix, projMatrixLoc;
+var axy = 'x';
+var amountX = 0.0;//amounts to rotate on the x,y, and z axis
+var amountY = 0.0;
+var amountZ = 0.0;
+var aspect; //aspect ration of viewport
+var amount = -2.0;//amount to traslate
+var bnf;//boolean value to help the object move back and forth
+
+const purple = vec4(0.7, 0.0, 1.0, 1.0);
+const black = vec4(0.0, 0.0, 0.0, 1.0);
+
+/*
+Name:my_mult
+
+Description:Performs matrix multilpication on the two matrices passed and returns the result
+
+Parameters:matA, matB
+
+Return Values:val
+*/
+function my_mult (matA, matB)
+{
+        //row x col
+	//hardcoded for two 4x4 matrices
+        var dimA = [4, 4];
+        var dimB = [4, 4];
+	//check if the matrices are compatible for multiplication ( MxL LxN )
+        if(dimA[1] == dimB[0])
+        {
+                var val = new Array(dimA[0]*dimB[1]);
+
+                var i, j, k;
+
+                for(i = 0; i < dimA[0]; i++)
+                {
+                        for(j = 0; j < dimB[1]; j++)
+                        {
+                                val[j * dimA[0] + i] = 0;
+
+                                for(k = 0; k < dimA[1]; k++)
+                                {
+                                        val[j* dimA[0] + i] += matA[k * dimA[0] + i] * matB[j * dimA[1] + k];
+                                }
+                        }
+                }
+
+                //console.log(val);
+
+                return val;
+
+        }
+        else
+        {
+                return FALSE;
+        }
+
+}
+/*
+Name:my_rotate_z
+
+Description:Builds the matrix that will rotate an object on the z axis
+
+Parameters:angle
+
+Return Values:result
+*/
+function my_rotate_z(angle)
+{
+        var rads = angle * (Math.PI / 180);  // convert to radians
+
+        var result = [ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 ];// build the 16 numbers
+        result[0] = Math.cos(rads);
+        result[1] = Math.sin(rads);
+        result[4] = 0-Math.sin(rads);
+        result[5] = Math.cos(rads);
+
+        return result;
+}
+/*
+Name:my_rotate_x
+
+Description:Builds the matrix that will rotate an object on the x axis
+
+Parameters:angle
+
+Return Values:result
+*/
+function my_rotate_x(angle)
+{
+        var rads = angle * (Math.PI / 180);  // convert to radians
+
+        var result = [ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 ];// build the 16 numbers
+        result[5] = Math.cos(rads);
+        result[6] = Math.sin(rads);
+        result[9] = 0-Math.sin(rads);
+        result[10] = Math.cos(rads);
+
+        return result;
+}
+/*
+Name:my_rotate_y
+
+Description:Builds the matrix that will rotate an object on the y axis
+
+Parameters:angle
+
+Return Values:result
+*/
+function my_rotate_y(angle)
+{
+        var rads = angle * (Math.PI / 180);//convert to radians
+
+        var result = [ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 ];// build the 16 numbers
+        result[0] = Math.cos(rads);
+        result[8] = Math.sin(rads);
+        result[2] = 0-Math.sin(rads);
+        result[10] = Math.cos(rads);
+
+        return result;
+}
+/*
+Name:my_translate
+
+Description:Builds the matrix that will translate an object on the x,y, or z axis
+
+Parameters:x, y, z
+
+Return Values:result
+*/
+function my_translate(x, y, z)
+{
+        var result = [ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 ];
+
+        result[12] = x;
+        result[13] = y;
+        result[14] = z;
+
+        return result;
+}
+/*
+Name:my_scale
+
+Description:Builds the matrix that will scale an object on the x,y, or z axis
+
+Parameters:x, y, z
+
+Return Values:result
+*/
+function my_scale(x, y, z)
+{
+        var result = [ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 ];
+
+        result[0] = x;
+        result[5] = y;
+        result[10] = z;
+
+        return result;
+}
+
+/*
+Name:resetObj
+
+Description:Returns the object to its original position 
+when the page was first loaded
+
+Parameters:None
+
+Return Values:None
+*/
+function resetObj()
+{
+	amountX = 0;
+	amountY = 0;
+	amountZ = 0;
+}
+
+<!-------------------------------------------------->
+
+function render()
+{
+	//set the matrix to an 4x4 identity matrix
+   	myMatrix = [ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 ];
+    	// clear the old image
+    	gl.clear ( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	//the object will move back and forth the z-axis
+	if(amount >= -2.0)
+	{
+		bnf = false;	
+	}
+	else if(amount <= -10.0)
+	{
+		bnf = true;
+	} 
+	//increment or decrement the amount based on where the object is on the z-axis
+	if(bnf == true)
+	{
+		amount+=0.01;
+		amountX+=0.5;
+		amountY+=0.5;
+	}
+	else
+	{
+		amount-=0.01;
+		amountX-=0.5;
+		amountY-=0.5;
+	}
+
+	//create each axes rotation matrix
+	var matX = my_rotate_x(amountX);
+        var matY = my_rotate_y(amountY);
+        var matZ = my_rotate_z(amountZ);
+	//move along the z axis in a strange roll
+	var transXYZ = my_translate(Math.cos(amount), Math.sin(amount), amount);
+	
+	projMatrix = perspective(80, 1, 1, 11);
+
+	myMatrix = my_mult(myMatrix, transXYZ);
+
+	//multiply the axes rotation matrices together 
+	myMatrix = my_mult(myMatrix, matX);
+	myMatrix = my_mult(myMatrix, matY);
+	myMatrix = my_mult(myMatrix, matZ);
+
+    	gl.uniformMatrix4fv (projMatrixLoc, false, flatten(projMatrix) );
+	gl.uniformMatrix4fv (modelMatrixLoc, false, flatten(myMatrix) );
+    	//draw the object	
+   	gl.uniform4fv (fColorLocation, flatten(purple));
+    	gl.drawArrays ( gl.TRIANGLES, 0, 96);
+    	//draw the lines around the object	
+    	gl.uniform4fv (fColorLocation, flatten(black));
+    	gl.drawArrays ( gl.LINES, 96, 60);
+
+	//console.log(amount);
+
+	requestAnimFrame(render);
+}
+
+<!-------------------------------------------------->
+
+window.onload = function init()
+{
+    // Createa a drawing area in the browser window
+    var canvas = document.getElementById( "gl-canvas" );
+    gl = WebGLUtils.setupWebGL( canvas );
+    if ( !gl ) { alert( "WebGL isn't available" ); }
+
+    // Create an array with 3 points 
+    var vertices = [
+	 -0.6, 0.6, 0.0,
+	 0.0, 1.0, 0.0,
+	 -0.3, 0.4, 0.4,
+	 -0.3, 0.4, 0.4,
+	 0.0, 1.0, 0.0,
+	 0.0, 0.6, 0.4,
+	 0.0, 0.6, 0.4,
+	 0.0, 1.0, 0.0,
+	 0.3, 0.4, 0.4,
+	 0.0, 1.0, 0.0,
+	 0.6, 0.6, 0.0,
+	 0.3, 0.4, 0.4,
+	 0.0, 0.6, 0.4,
+	 -0.3, 0.4, 0.4,
+	 0.3, 0.4, 0.4,
+
+	 0.6, 0.6, 0.0,
+	 0.3, 0.4, 0.4,
+	 0.3, -0.4, 0.4,
+	 0.3, -0.4, 0.4,
+	 0.6, 0.6, 0.0,
+	 0.6, -0.6, 0.0,
+	 -0.6, 0.6, 0.0,
+	 -0.3, 0.4, 0.4,
+	 -0.3, -0.4, 0.4,
+	 -0.6, 0.6, 0.0,
+	 -0.6, -0.6, 0.0,
+	 -0.3, -0.4, 0.4,
+	 -0.3, 0.4, 0.4,
+	 0.3, 0.4, 0.4,
+	 -0.3, -0.4, 0.4,
+	 0.3, 0.4, 0.4,
+	 -0.3, -0.4, 0.4,
+	 0.3, -0.4, 0.4,
+
+	 -0.3, -0.4, 0.4,
+	 0.3, -0.4, 0.4,
+	 0.0, -0.6, 0.4,
+	 -0.3, -0.4, 0.4,
+	 0.0, -1.0, 0.0,
+	 -0.6, -0.6, 0.0,
+	 -0.3, -0.4, 0.4,
+	 0.0, -0.6, 0.4,
+	 0.0, -1.0, 0.0,
+	 0.0, -1.0, 0.0,
+	 0.0, -0.6, 0.4,
+	 0.3, -0.4, 0.4,
+	 0.0, -1.0, 0.0,
+	 0.3, -0.4, 0.4,
+	 0.6, -0.6, 0.0, 
+
+	//end of front and start of back
+	 
+	 -0.6, 0.6, 0.0,
+         0.0, 1.0, 0.0,
+         -0.3, 0.4, -0.4,
+         -0.3, 0.4, -0.4,
+         0.0, 1.0, 0.0,
+         0.0, 0.6, -0.4,
+         0.0, 0.6, -0.4,
+         0.0, 1.0, 0.0,
+         0.3, 0.4, -0.4,
+         0.0, 1.0, 0.0,
+         0.6, 0.6, 0.0,
+         0.3, 0.4, -0.4,
+         0.0, 0.6, -0.4,
+         -0.3, 0.4, -0.4,
+         0.3, 0.4, -0.4,
+
+         0.6, 0.6, 0.0,
+         0.3, 0.4, -0.4,
+         0.3, -0.4, -0.4,
+         0.3, -0.4, -0.4,
+         0.6, 0.6, 0.0,
+         0.6, -0.6, 0.0,
+         -0.6, 0.6, 0.0,
+         -0.3, 0.4, -0.4,
+         -0.3, -0.4, -0.4,
+         -0.6, 0.6, 0.0,
+         -0.6, -0.6, 0.0,
+         -0.3, -0.4, -0.4,
+         -0.3, 0.4, -0.4,
+         0.3, 0.4, -0.4,
+         -0.3, -0.4, -0.4,
+         0.3, 0.4, -0.4,
+         -0.3, -0.4, -0.4,
+         0.3, -0.4, -0.4,
+
+         -0.3, -0.4, -0.4,
+         0.3, -0.4, -0.4,
+         0.0, -0.6, -0.4,
+         -0.3, -0.4, -0.4,
+         0.0, -1.0, 0.0,
+         -0.6, -0.6, 0.0,
+         -0.3, -0.4, -0.4,
+         0.0, -0.6, -0.4,
+         0.0, -1.0, 0.0,
+         0.0, -1.0, 0.0,
+         0.0, -0.6, -0.4,
+         0.3, -0.4, -0.4,
+         0.0, -1.0, 0.0,
+         0.3, -0.4, -0.4,
+         0.6, -0.6, 0.0,
+
+	//lines on front
+
+	 0.0, 1.0, 0.0, 
+	 -0.6, 0.6, 0.0,
+	 -0.6, 0.6, 0.0,
+	 -0.3, 0.4, 0.4,
+	 -0.3, 0.4, 0.4,
+	 0.0, 0.6, 0.4,
+	 0.0, 0.6, 0.4,
+	 0.0, 1.0, 0.0,
+	 0.0, 1.0, 0.0,
+	 0.6, 0.6, 0.0,
+	 0.6, 0.6, 0.0,
+	 0.3, 0.4, 0.4,
+	 0.3, 0.4, 0.4,
+	 0.0, 0.6, 0.4,
+	 0.6, 0.6, 0.0,
+	 0.6, -0.6, 0.0,
+	 0.6, -0.6, 0.0,
+	 0.3, -0.4, 0.4,
+	 0.3, -0.4, 0.4,
+	 0.3, 0.4, 0.4,
+	 0.3, -0.4, 0.4,
+	 0.0, -0.6, 0.4,
+	 0.0, -0.6, 0.4,
+	 0.0, -1.0, 0.0,
+	 0.0, -1.0, 0.0,
+	 0.6, -0.6, 0.0,
+	 0.0, -0.6, 0.4,
+	 -0.3, -0.4, 0.4,
+	 -0.3, -0.4, 0.4,
+	 -0.6, -0.6, 0.0,
+	 -0.6, -0.6, 0.0,
+	 0.0, -1.0, 0.0,
+	 -0.6, 0.6, 0.0,
+	 -0.6, -0.6, 0.0,
+	 -0.3, 0.4, 0.4,
+	 -0.3, -0.4, 0.4,
+
+	 //lines on back
+	 -0.6, 0.6, 0.0,
+	 -0.3, 0.4, -0.4,
+	 0.0, 1.0, 0.0,
+	 0.0, 0.6, -0.4,
+	 0.6, 0.6, 0.0,
+	 0.3, 0.4, -0.4,
+	 0.6, -0.6, 0.0,
+	 0.3, -0.4, -0.4,
+	 0.0, -0.6, -0.4,
+	 0.0, -1.0, 0.0,
+	 -0.3, -0.4, -0.4,
+	 -0.6, -0.6, 0.0,
+	 -0.3, 0.4, -0.4,
+	 0.0, 0.6, -0.4,
+         0.3, 0.4, -0.4,
+	 0.0, 0.6, -0.4,
+	 0.3, -0.4, -0.4,
+	 0.3, 0.4, -0.4,
+	 0.3, -0.4, -0.4,
+	 0.0, -0.6, -0.4,
+	 0.0, -0.6, -0.4,
+	 -0.3, -0.4, -0.4,
+	 -0.3, -0.4, -0.4,
+	 -0.3, 0.4, -0.4   
+	 
+    ];
+
+    // send GPU instructions
+    program = initShaders( gl, "vertex-shader", "fragment-shader" );
+    gl.useProgram( program );
+  
+    // Create space on the GPU
+    var myBuffer = gl.createBuffer();
+    gl.bindBuffer ( gl.ARRAY_BUFFER, myBuffer);
+    // Send data points to the GPU
+    gl.bufferData ( gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW);
+
+    // Associate our shader variables with our data buffer
+    var vPosition = gl.getAttribLocation( program, "vPosition" );
+    gl.vertexAttribPointer( vPosition, 3, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vPosition );
+
+    	modelMatrixLoc = gl.getUniformLocation ( program, "modelMatrix" );
+	projMatrixLoc = gl.getUniformLocation ( program, "projMatrix" );
+    	fColorLocation = gl.getUniformLocation(program, "fColor");
+
+	projMatrix = perspective(80, 1, 1, 11);
+
+    	gl.viewport( 0, 0, canvas.width, canvas.height );
+	aspect = (canvas.width / canvas.height);
+    	gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
+	//want to hide the surfaces that are behind closer surfaces
+	gl.enable(gl.DEPTH_TEST);
+
+
+    // DRAW IT !!!
+    render();
+
+};
+
+<!-------------------------------------------------->
+
+</script>
+</head>
+
+
+<body bgcolor=grey>
+<center>	
+<h2 align=center>My Moving 3D Object with a Perpective View</h2>
+<canvas id="gl-canvas" width="500" height="500"> You must use an updated browser. </canvas>
+
+</body>
+</html>

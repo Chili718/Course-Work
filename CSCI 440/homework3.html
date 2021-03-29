@@ -1,0 +1,405 @@
+<!--
+Name: Jon Tice
+
+Title: Homework 3
+
+Description: Displays the 3D object I have created and allows the user to spin it
+along the x,y,and z axis
+Class: CSCI 440
+
+Date: 10/1/18
+-->
+<html>
+<head>
+<title>3D Object Moving</title>
+
+<!-- ---- Create the two Shaders ---- -->
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+uniform mat4 modelMatrix;
+
+void main()
+{
+    //gl_Position = vPosition;
+    gl_Position = modelMatrix * vPosition;
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+uniform vec4 fColor;
+
+void main()
+{
+    gl_FragColor = fColor;
+    //gl_FragColor = vec4( 0.7, 0.0, 1.0, 1.0 );
+}
+</script>
+
+
+<!-- ---- Include Angel's Libraries ---- -->
+<script type="text/javascript" src="webgl-utils.js"></script>
+<script type="text/javascript" src="initShaders.js"></script>
+<script type="text/javascript" src="MV.js"></script>
+
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - -
+- - - - - - - - - -  Primary Code  - - - - - - - -
+- - - - - - - - - - - - - - - - - - - - - - - - -->
+<script>
+
+var gl;				// graphics library instance
+//var modelMatrixLocation; 	// location in GPU
+var program;                    // GPU instructions
+//var amount = 0.0;               // movement amount
+var fColorLocation;
+
+var modelMatrixLoc;
+var myMatrix;
+var axy = 'x';
+var amountX = 0;
+var amountY = 0;
+var amountZ = 0;
+
+const purple = vec4(0.7, 0.0, 1.0, 1.0);
+const black = vec4(0.0, 0.0, 0.0, 1.0);
+/*
+Name:resetObj
+
+Description:Returns the object to its original position 
+when the page was first loaded
+
+Parameters:None
+
+Return Values:None
+*/
+function resetObj()
+{
+	amountX = 0;
+	amountY = 0;
+	amountZ = 0;
+}
+/*
+Name:axis
+
+Description:Assigns the axy variable based on the plane given to the funciton
+
+Parameters:plane
+
+Return Values:None
+*/
+function axis (plane)
+{
+	switch (plane)
+	{
+		case 'x':
+			axy = 'x';
+			break;
+		case 'y':
+			axy = 'y';
+			break;
+		case 'z':
+			axy = 'z';
+	
+	}
+}
+/*
+Name:rote
+
+Description:Increments or decrements the corresponding axes rotation amount
+
+Parameters:posi
+
+Return Values:None
+*/
+function rote (posi)
+{
+	switch (axy)
+	{
+		case 'x':
+                        if(posi == -1)	
+				amountX -= 10;
+			else
+				amountX += 10;
+                        break;
+                case 'y':
+                        if(posi == -1)
+                                amountY -= 10;
+                        else
+                                amountY += 10;
+                        break;
+                case 'z':
+                        if(posi == -1)
+                                amountZ -= 10;
+                        else
+                                amountZ += 10;
+                        
+	}
+}
+
+<!-------------------------------------------------->
+
+function render()
+{
+	//set the matrix to an 4x4 identity matrix
+   	myMatrix = mat4();
+    	// clear the old image
+    	gl.clear ( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	//create each axes rotation matrix
+	var matX = rotate(amountX, [1,0,0]);
+	var matY = rotate(amountY, [0,1,0]);
+	var matZ = rotate(amountZ, [0,0,1]);
+	//multuply the axes rotation matrices together 
+	myMatrix = mult(myMatrix, matX);
+	myMatrix = mult(myMatrix, matY);
+	myMatrix = mult(myMatrix, matZ);
+
+    	gl.uniformMatrix4fv (modelMatrixLoc, false, flatten(myMatrix) );
+    	//draw the object	
+   	gl.uniform4fv (fColorLocation, flatten(purple));
+    	gl.drawArrays ( gl.TRIANGLES, 0, 96);
+    	//draw the lines around the object	
+    	gl.uniform4fv (fColorLocation, flatten(black));
+    	gl.drawArrays ( gl.LINES, 96, 60);
+
+	//console.log(amount);
+
+	requestAnimFrame(render);
+}
+
+<!-------------------------------------------------->
+
+window.onload = function init()
+{
+    // Createa a drawing area in the browser window
+    var canvas = document.getElementById( "gl-canvas" );
+    gl = WebGLUtils.setupWebGL( canvas );
+    if ( !gl ) { alert( "WebGL isn't available" ); }
+
+    // Create an array with 3 points 
+    var vertices = [
+	 -0.6, 0.6, 0.0,
+	 0.0, 1.0, 0.0,
+	 -0.3, 0.4, 0.4,
+	 -0.3, 0.4, 0.4,
+	 0.0, 1.0, 0.0,
+	 0.0, 0.6, 0.4,
+	 0.0, 0.6, 0.4,
+	 0.0, 1.0, 0.0,
+	 0.3, 0.4, 0.4,
+	 0.0, 1.0, 0.0,
+	 0.6, 0.6, 0.0,
+	 0.3, 0.4, 0.4,
+	 0.0, 0.6, 0.4,
+	 -0.3, 0.4, 0.4,
+	 0.3, 0.4, 0.4,
+
+	 0.6, 0.6, 0.0,
+	 0.3, 0.4, 0.4,
+	 0.3, -0.4, 0.4,
+	 0.3, -0.4, 0.4,
+	 0.6, 0.6, 0.0,
+	 0.6, -0.6, 0.0,
+	 -0.6, 0.6, 0.0,
+	 -0.3, 0.4, 0.4,
+	 -0.3, -0.4, 0.4,
+	 -0.6, 0.6, 0.0,
+	 -0.6, -0.6, 0.0,
+	 -0.3, -0.4, 0.4,
+	 -0.3, 0.4, 0.4,
+	 0.3, 0.4, 0.4,
+	 -0.3, -0.4, 0.4,
+	 0.3, 0.4, 0.4,
+	 -0.3, -0.4, 0.4,
+	 0.3, -0.4, 0.4,
+
+	 -0.3, -0.4, 0.4,
+	 0.3, -0.4, 0.4,
+	 0.0, -0.6, 0.4,
+	 -0.3, -0.4, 0.4,
+	 0.0, -1.0, 0.0,
+	 -0.6, -0.6, 0.0,
+	 -0.3, -0.4, 0.4,
+	 0.0, -0.6, 0.4,
+	 0.0, -1.0, 0.0,
+	 0.0, -1.0, 0.0,
+	 0.0, -0.6, 0.4,
+	 0.3, -0.4, 0.4,
+	 0.0, -1.0, 0.0,
+	 0.3, -0.4, 0.4,
+	 0.6, -0.6, 0.0, 
+
+	//end of front and start of back
+	 
+	 -0.6, 0.6, 0.0,
+         0.0, 1.0, 0.0,
+         -0.3, 0.4, -0.4,
+         -0.3, 0.4, -0.4,
+         0.0, 1.0, 0.0,
+         0.0, 0.6, -0.4,
+         0.0, 0.6, -0.4,
+         0.0, 1.0, 0.0,
+         0.3, 0.4, -0.4,
+         0.0, 1.0, 0.0,
+         0.6, 0.6, 0.0,
+         0.3, 0.4, -0.4,
+         0.0, 0.6, -0.4,
+         -0.3, 0.4, -0.4,
+         0.3, 0.4, -0.4,
+
+         0.6, 0.6, 0.0,
+         0.3, 0.4, -0.4,
+         0.3, -0.4, -0.4,
+         0.3, -0.4, -0.4,
+         0.6, 0.6, 0.0,
+         0.6, -0.6, 0.0,
+         -0.6, 0.6, 0.0,
+         -0.3, 0.4, -0.4,
+         -0.3, -0.4, -0.4,
+         -0.6, 0.6, 0.0,
+         -0.6, -0.6, 0.0,
+         -0.3, -0.4, -0.4,
+         -0.3, 0.4, -0.4,
+         0.3, 0.4, -0.4,
+         -0.3, -0.4, -0.4,
+         0.3, 0.4, -0.4,
+         -0.3, -0.4, -0.4,
+         0.3, -0.4, -0.4,
+
+         -0.3, -0.4, -0.4,
+         0.3, -0.4, -0.4,
+         0.0, -0.6, -0.4,
+         -0.3, -0.4, -0.4,
+         0.0, -1.0, 0.0,
+         -0.6, -0.6, 0.0,
+         -0.3, -0.4, -0.4,
+         0.0, -0.6, -0.4,
+         0.0, -1.0, 0.0,
+         0.0, -1.0, 0.0,
+         0.0, -0.6, -0.4,
+         0.3, -0.4, -0.4,
+         0.0, -1.0, 0.0,
+         0.3, -0.4, -0.4,
+         0.6, -0.6, 0.0,
+
+	//lines on front
+
+	 0.0, 1.0, 0.0, 
+	 -0.6, 0.6, 0.0,
+	 -0.6, 0.6, 0.0,
+	 -0.3, 0.4, 0.4,
+	 -0.3, 0.4, 0.4,
+	 0.0, 0.6, 0.4,
+	 0.0, 0.6, 0.4,
+	 0.0, 1.0, 0.0,
+	 0.0, 1.0, 0.0,
+	 0.6, 0.6, 0.0,
+	 0.6, 0.6, 0.0,
+	 0.3, 0.4, 0.4,
+	 0.3, 0.4, 0.4,
+	 0.0, 0.6, 0.4,
+	 0.6, 0.6, 0.0,
+	 0.6, -0.6, 0.0,
+	 0.6, -0.6, 0.0,
+	 0.3, -0.4, 0.4,
+	 0.3, -0.4, 0.4,
+	 0.3, 0.4, 0.4,
+	 0.3, -0.4, 0.4,
+	 0.0, -0.6, 0.4,
+	 0.0, -0.6, 0.4,
+	 0.0, -1.0, 0.0,
+	 0.0, -1.0, 0.0,
+	 0.6, -0.6, 0.0,
+	 0.0, -0.6, 0.4,
+	 -0.3, -0.4, 0.4,
+	 -0.3, -0.4, 0.4,
+	 -0.6, -0.6, 0.0,
+	 -0.6, -0.6, 0.0,
+	 0.0, -1.0, 0.0,
+	 -0.6, 0.6, 0.0,
+	 -0.6, -0.6, 0.0,
+	 -0.3, 0.4, 0.4,
+	 -0.3, -0.4, 0.4,
+
+	 //lines on back
+	 -0.6, 0.6, 0.0,
+	 -0.3, 0.4, -0.4,
+	 0.0, 1.0, 0.0,
+	 0.0, 0.6, -0.4,
+	 0.6, 0.6, 0.0,
+	 0.3, 0.4, -0.4,
+	 0.6, -0.6, 0.0,
+	 0.3, -0.4, -0.4,
+	 0.0, -0.6, -0.4,
+	 0.0, -1.0, 0.0,
+	 -0.3, -0.4, -0.4,
+	 -0.6, -0.6, 0.0,
+	 -0.3, 0.4, -0.4,
+	 0.0, 0.6, -0.4,
+         0.3, 0.4, -0.4,
+	 0.0, 0.6, -0.4,
+	 0.3, -0.4, -0.4,
+	 0.3, 0.4, -0.4,
+	 0.3, -0.4, -0.4,
+	 0.0, -0.6, -0.4,
+	 0.0, -0.6, -0.4,
+	 -0.3, -0.4, -0.4,
+	 -0.3, -0.4, -0.4,
+	 -0.3, 0.4, -0.4   
+	 
+    ];
+
+    // send GPU instructions
+    program = initShaders( gl, "vertex-shader", "fragment-shader" );
+    gl.useProgram( program );
+  
+    // Create space on the GPU
+    var myBuffer = gl.createBuffer();
+    gl.bindBuffer ( gl.ARRAY_BUFFER, myBuffer);
+    // Send data points to the GPU
+    gl.bufferData ( gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW);
+
+    // Associate our shader variables with our data buffer
+    var vPosition = gl.getAttribLocation( program, "vPosition" );
+    gl.vertexAttribPointer( vPosition, 3, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vPosition );
+
+    modelMatrixLoc = gl.getUniformLocation ( program, "modelMatrix" );	
+    fColorLocation = gl.getUniformLocation(program, "fColor");
+
+    gl.viewport( 0, 0, canvas.width, canvas.height );
+    gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
+	//want to hide the surfaces that are behind closer surfaces
+	gl.enable(gl.DEPTH_TEST);
+
+
+    // DRAW IT !!!
+    render();
+
+};
+
+<!-------------------------------------------------->
+
+</script>
+</head>
+
+
+<body bgcolor=grey>
+<center>	
+<h2 align=center>My Moving 3D Object</h2>
+<canvas id="gl-canvas" width="500" height="500"> You must use an updated browser. </canvas>
+<P>
+<p>Rotate on the:</p>
+<P>
+<button onclick=axis('x')>Rotate on X Axis</button>
+<button onclick=axis('y')>Rotate on Y Axis</button>
+<button onclick=axis('z')>Rotate on Z Axis</button>
+<P>
+<button onclick=rote(1)>Counter Clockwise</button>
+<button onclick=rote(-1)>Clockwise</button>
+<P>
+<button onclick=resetObj()>Reset</button>
+
+
+</body>
+</html>

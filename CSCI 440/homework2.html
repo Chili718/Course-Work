@@ -1,0 +1,293 @@
+<!--
+Name: Jon Tice
+
+Title: Homework 2
+
+Description: Displays the 3D object I have created
+
+Class: CSCI 440
+
+Date: 9/14/18
+-->
+<html>
+<head>
+<title>3D Object</title>
+
+<!-- ---- Create the two Shaders ---- -->
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+uniform mat4 modelMatrix;
+
+void main()
+{
+    gl_Position = vPosition;
+    //gl_Position = modelMatrix * vPosition;
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+uniform vec4 fColor;
+
+void main()
+{
+    gl_FragColor = fColor;
+    //gl_FragColor = vec4( 0.7, 0.0, 1.0, 1.0 );
+}
+</script>
+
+
+<!-- ---- Include Angel's Libraries ---- -->
+<script type="text/javascript" src="webgl-utils.js"></script>
+<script type="text/javascript" src="initShaders.js"></script>
+<script type="text/javascript" src="MV.js"></script>
+
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - -
+- - - - - - - - - -  Primary Code  - - - - - - - -
+- - - - - - - - - - - - - - - - - - - - - - - - -->
+<script>
+
+var gl;				// graphics library instance
+//var modelMatrixLocation; 	// location in GPU
+var program;                    // GPU instructions
+//var amount = 0.0;               // movement amount
+var fColorLocation;
+
+const purple = vec4(0.7, 0.0, 1.0, 1.0);
+const black = vec4(0.0, 0.0, 0.0, 1.0);
+
+<!-------------------------------------------------->
+
+function render()
+{
+   
+    // clear the old image
+    gl.clear ( gl.COLOR_BUFFER_BIT );
+    //draw the object	
+    gl.uniform4fv (fColorLocation, flatten(purple));
+    gl.drawArrays ( gl.TRIANGLES, 0, 96);
+    //draw the lines around the object	
+    gl.uniform4fv (fColorLocation, flatten(black));
+    gl.drawArrays ( gl.LINES, 96, 60);
+}
+
+<!-------------------------------------------------->
+
+window.onload = function init()
+{
+    // Createa a drawing area in the browser window
+    var canvas = document.getElementById( "gl-canvas" );
+    gl = WebGLUtils.setupWebGL( canvas );
+    if ( !gl ) { alert( "WebGL isn't available" ); }
+
+    // Create an array with 3 points 
+    var vertices = [
+	 -0.8, 0.6, 0.0,
+	 0.0, 1.0, 0.0,
+	 -0.4, 0.4, 0.6,
+	 -0.4, 0.4, 0.6,
+	 0.0, 1.0, 0.0,
+	 0.0, 0.6, 0.6,
+	 0.0, 0.6, 0.6,
+	 0.0, 1.0, 0.0,
+	 0.4, 0.4, 0.6,
+	 0.0, 1.0, 0.0,
+	 0.8, 0.6, 0.0,
+	 0.4, 0.4, 0.6,
+	 0.0, 0.6, 0.6,
+	 -0.4, 0.4, 0.6,
+	 0.4, 0.4, 0.6,
+
+	 0.8, 0.6, 0.0,
+	 0.4, 0.4, 0.6,
+	 0.4, -0.4, 0.6,
+	 0.4, -0.4, 0.6,
+	 0.8, 0.6, 0.0,
+	 0.8, -0.6, 0.0,
+	 -0.8, 0.6, 0.0,
+	 -0.4, 0.4, 0.6,
+	 -0.4, -0.4, 0.6,
+	 -0.8, 0.6, 0.0,
+	 -0.8, -0.6, 0.0,
+	 -0.4, -0.4, 0.6,
+	 -0.4, 0.4, 0.6,
+	 0.4, 0.4, 0.6,
+	 -0.4, -0.4, 0.6,
+	 0.4, 0.4, 0.6,
+	 -0.4, -0.4, 0.6,
+	 0.4, -0.4, 0.6,
+
+	 -0.4, -0.4, 0.6,
+	 0.4, -0.4, 0.6,
+	 0.0, -0.6, 0.6,
+	 -0.4, -0.4, 0.6,
+	 0.0, -1.0, 0.0,
+	 -0.8, -0.6, 0.0,
+	 -0.4, -0.4, 0.6,
+	 0.0, -0.6, 0.6,
+	 0.0, -1.0, 0.0,
+	 0.0, -1.0, 0.0,
+	 0.0, -0.6, 0.6,
+	 0.4, -0.4, 0.6,
+	 0.0, -1.0, 0.0,
+	 0.4, -0.4, 0.6,
+	 0.8, -0.6, 0.0, 
+
+	//end of front and start of back
+	 
+	 -0.8, 0.6, 0.0,
+         0.0, 1.0, 0.0,
+         -0.4, 0.4, -0.6,
+         -0.4, 0.4, -0.6,
+         0.0, 1.0, 0.0,
+         0.0, 0.6, -0.6,
+         0.0, 0.6, -0.6,
+         0.0, 1.0, 0.0,
+         0.4, 0.4, -0.6,
+         0.0, 1.0, 0.0,
+         0.8, 0.6, 0.0,
+         0.4, 0.4, -0.6,
+         0.0, 0.6, -0.6,
+         -0.4, 0.4, -0.6,
+         0.4, 0.4, -0.6,
+
+         0.8, 0.6, 0.0,
+         0.4, 0.4, -0.6,
+         0.4, -0.4, -0.6,
+         0.4, -0.4, -0.6,
+         0.8, 0.6, 0.0,
+         0.8, -0.6, 0.0,
+         -0.8, 0.6, 0.0,
+         -0.4, 0.4, -0.6,
+         -0.4, -0.4, -0.6,
+         -0.8, 0.6, 0.0,
+         -0.8, -0.6, 0.0,
+         -0.4, -0.4, -0.6,
+         -0.4, 0.4, -0.6,
+         0.4, 0.4, -0.6,
+         -0.4, -0.4, -0.6,
+         0.4, 0.4, -0.6,
+         -0.4, -0.4, -0.6,
+         0.4, -0.4, -0.6,
+
+         -0.4, -0.4, -0.6,
+         0.4, -0.4, -0.6,
+         0.0, -0.6, -0.6,
+         -0.4, -0.4, -0.6,
+         0.0, -1.0, 0.0,
+         -0.8, -0.6, 0.0,
+         -0.4, -0.4, -0.6,
+         0.0, -0.6, -0.6,
+         0.0, -1.0, 0.0,
+         0.0, -1.0, 0.0,
+         0.0, -0.6, -0.6,
+         0.4, -0.4, -0.6,
+         0.0, -1.0, 0.0,
+         0.4, -0.4, -0.6,
+         0.8, -0.6, 0.0,
+
+	//lines on front
+
+	 0.0, 1.0, 0.0, 
+	 -0.8, 0.6, 0.0,
+	 -0.8, 0.6, 0.0,
+	 -0.4, 0.4, 0.6,
+	 -0.4, 0.4, 0.6,
+	 0.0, 0.6, 0.6,
+	 0.0, 0.6, 0.6,
+	 0.0, 1.0, 0.0,
+	 0.0, 1.0, 0.0,
+	 0.8, 0.6, 0.0,
+	 0.8, 0.6, 0.0,
+	 0.4, 0.4, 0.6,
+	 0.4, 0.4, 0.6,
+	 0.0, 0.6, 0.6,
+	 0.8, 0.6, 0.0,
+	 0.8, -0.6, 0.0,
+	 0.8, -0.6, 0.0,
+	 0.4, -0.4, 0.6,
+	 0.4, -0.4, 0.6,
+	 0.4, 0.4, 0.6,
+	 0.4, -0.4, 0.6,
+	 0.0, -0.6, 0.6,
+	 0.0, -0.6, 0.6,
+	 0.0, -1.0, 0.0,
+	 0.0, -1.0, 0.0,
+	 0.8, -0.6, 0.0,
+	 0.0, -0.6, 0.6,
+	 -0.4, -0.4, 0.6,
+	 -0.4, -0.4, 0.6,
+	 -0.8, -0.6, 0.0,
+	 -0.8, -0.6, 0.0,
+	 0.0, -1.0, 0.0,
+	 -0.8, 0.6, 0.0,
+	 -0.8, -0.6, 0.0,
+	 -0.4, 0.4, 0.6,
+	 -0.4, -0.4, 0.6,
+
+	 //lines on back
+	 -0.8, 0.6, 0.0,
+	 -0.4, 0.4, -0.6,
+	 0.0, 1.0, 0.0,
+	 0.0, 0.6, -0.6,
+	 0.8, 0.6, 0.0,
+	 0.4, 0.4, -0.6,
+	 0.8, -0.6, 0.0,
+	 0.4, -0.4, -0.6,
+	 0.0, -0.6, -0.6,
+	 0.0, -1.0, 0.0,
+	 -0.4, -0.4, -0.6,
+	 -0.8, -0.6, 0.0,
+	 -0.4, 0.4, -0.6,
+	 0.0, 0.6, -0.6,
+         0.4, 0.4, -0.6,
+	 0.0, 0.6, -0.6,
+	 0.4, -0.4, -0.6,
+	 0.4, 0.4, -0.6,
+	 0.4, -0.4, -0.6,
+	 0.0, -0.6, -0.6,
+	 0.0, -0.6, -0.6,
+	 -0.4, -0.4, -0.6,
+	 -0.4, -0.4, -0.6,
+	 -0.4, 0.4, -0.6   
+	 
+    ];
+
+    // send GPU instructions
+    program = initShaders( gl, "vertex-shader", "fragment-shader" );
+    gl.useProgram( program );
+  
+    // Create space on the GPU
+    var myBuffer = gl.createBuffer();
+    gl.bindBuffer ( gl.ARRAY_BUFFER, myBuffer);
+    // Send data points to the GPU
+    gl.bufferData ( gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW);
+
+    // Associate our shader variables with our data buffer
+    var vPosition = gl.getAttribLocation( program, "vPosition" );
+    gl.vertexAttribPointer( vPosition, 3, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vPosition );
+
+    fColorLocation = gl.getUniformLocation(program, "fColor");
+
+    gl.viewport( 0, 0, canvas.width, canvas.height );
+    gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
+
+
+    // DRAW IT !!!
+    render();
+
+};
+
+<!-------------------------------------------------->
+
+</script>
+</head>
+
+
+<body bgcolor=grey>
+<h2 align=center>My 3D Object</h2>
+<canvas id="gl-canvas" width="500" height="500"> You must use an updated browser. </canvas>
+</body>
+</html>

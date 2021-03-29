@@ -1,0 +1,351 @@
+CREATE TABLE USER_ACCOUNT(id INT Unsigned NOT NULL Primary Key auto_increment, Email VARCHAR(254) UNIQUE KEY NOT NULL, FirstName VARCHAR(450) NOT NULL, LastName VARCHAR(450) NOT NULL, Phone VARCHAR(15) NOT NULL, StreetAddress VARCHAR(100) NOT NULL, City VARCHAR(25) NOT NULL, State VARCHAR(2) NOT NULL, Zip MEDIUMINT NOT NULL, Salt VARCHAR(10) NOT NULL, Hash VARCHAR(40) NOT NULL);
+
+CREATE TABLE SUBSCRIPTION_TYPE(id TINYINT Unsigned NOT NULL Primary Key auto_increment, Name VARCHAR(75) NOT NULL, Screens TINYINT NOT NULL, Price DECIMAL(4,2) NOT NULL, Description VARCHAR(156) NOT NULL);
+
+CREATE TABLE PAYMENT_METHOD(id BIGINT Unsigned NOT NULL Primary Key auto_increment, CreditCardNumber VARCHAR(20) NOT NULL, CVV VARCHAR(5) NOT NULL, ExpirationDate DATE NOT NULL, AcctID INT Unsigned NOT NULL, FOREIGN KEY (AcctID) REFERENCES USER_ACCOUNT(id) ON UPDATE CASCADE ON DELETE CASCADE, UNIQUE KEY(AcctID, CreditCardNumber));
+
+CREATE TABLE INVOICE(id BIGINT Unsigned NOT NULL Primary Key auto_increment, InvoiceID BIGINT Unsigned NOT NULL UNIQUE KEY, ServiceStart TIMESTAMP NOT NULL, AcctID INT Unsigned NOT NULL, SubID TINYINT Unsigned NOT NULL, PaymentID BIGINT Unsigned NOT NULL, PurchaseAmount DECIMAL(4,2) NOT NULL, FOREIGN KEY (AcctID) REFERENCES USER_ACCOUNT(id) ON UPDATE CASCADE ON DELETE CASCADE, FOREIGN KEY (SubID) REFERENCES SUBSCRIPTION_TYPE(id) ON UPDATE CASCADE ON DELETE CASCADE, FOREIGN KEY (PaymentID) REFERENCES PAYMENT_METHOD(id) ON UPDATE CASCADE ON DELETE CASCADE);
+
+CREATE TABLE PROFILE(id BIGINT Unsigned NOT NULL Primary Key auto_increment, Name VARCHAR(64) NOT NULL, AcctID INT Unsigned NOT NULL, FOREIGN KEY (AcctID) REFERENCES USER_ACCOUNT(id) ON UPDATE CASCADE ON DELETE CASCADE, UNIQUE KEY(AcctID, Name));
+
+CREATE TABLE MOVIE(id MEDIUMINT Unsigned NOT NULL Primary Key auto_increment, Name VARCHAR(200) NOT NULL, YearReleased DATE NOT NULL, Runtime SMALLINT NOT NULL, Description VARCHAR(255) NOT NULL, UNIQUE KEY(Name, YearReleased));
+
+CREATE TABLE GENRE(id TINYINT NOT NULL Primary Key auto_increment, Genre VARCHAR(50) UNIQUE KEY NOT NULL);
+
+CREATE TABLE TYPE_OF(MovieID MEDIUMINT Unsigned NOT NULL, GenreID TINYINT NOT NULL, FOREIGN KEY (MovieID) REFERENCES MOVIE(id) ON UPDATE CASCADE ON DELETE CASCADE, Primary Key(MovieID, GenreID), FOREIGN KEY (GenreID) REFERENCES GENRE(id) ON UPDATE CASCADE ON DELETE CASCADE);
+
+CREATE TABLE VIEWS_MOVIE(MovieID MEDIUMINT Unsigned, ProfileID BIGINT Unsigned, PercentComplete Decimal(5,2) NOT NULL DEFAULT 0.00, Primary Key(MovieID, ProfileID), FOREIGN KEY (MovieID) REFERENCES MOVIE(id) ON UPDATE CASCADE ON DELETE CASCADE, FOREIGN KEY (ProfileID) REFERENCES PROFILE(id) ON UPDATE CASCADE ON DELETE CASCADE);
+
+CREATE TABLE TV_SHOW(id MEDIUMINT Unsigned NOT NULL Primary Key auto_increment, Name VARCHAR(125) NOT NULL, YearReleased DATE NOT NULL, Description VARCHAR(255) NOT NULL DEFAULT "", UNIQUE KEY(Name, YearReleased));
+
+CREATE TABLE SEASON(id INT Unsigned NOT NULL Primary Key auto_increment, Name VARCHAR(10) NOT NULL, Number TINYINT NOT NULL, TVShowID MEDIUMINT Unsigned NOT NULL, FOREIGN KEY (TVShowID) REFERENCES TV_SHOW(id) ON UPDATE CASCADE ON DELETE CASCADE, UNIQUE KEY(TVShowID, Number));
+
+CREATE TABLE EPISODE(id INT Unsigned NOT NULL Primary Key auto_increment, Description VARCHAR(156) NOT NULL DEFAULT "", Number SMALLINT NOT NULL, Runtime SMALLINT NOT NULL, Name VARCHAR(125) NOT NULL, SeasonID INT Unsigned NOT NULL, FOREIGN KEY (SeasonID) REFERENCES SEASON(id) ON UPDATE CASCADE ON DELETE CASCADE, UNIQUE KEY(SeasonID, Number));
+
+CREATE TABLE VIEWS_EP(EpisodeID INT Unsigned, ProfileID BIGINT Unsigned, PercentComplete Decimal(5,2) NOT NULL DEFAULT 0.00, Primary Key(EpisodeID, ProfileID), FOREIGN KEY (EpisodeID) REFERENCES EPISODE(id) ON UPDATE CASCADE ON DELETE CASCADE, FOREIGN KEY (ProfileID) REFERENCES PROFILE(id) ON UPDATE CASCADE ON DELETE CASCADE);
+
+CREATE TABLE PERSON(id INT Unsigned NOT NULL Primary Key auto_increment, FirstName VARCHAR(450) NOT NULL, LastName VARCHAR(450) NOT NULL, Sex CHAR(1) NOT NULL);
+
+CREATE TABLE ACTS_IN_MOV(MovieID MEDIUMINT Unsigned, PersonID INT Unsigned, Primary Key(MovieID, PersonID), FOREIGN KEY (MovieID) REFERENCES MOVIE(id) ON UPDATE CASCADE ON DELETE CASCADE, FOREIGN KEY (PersonID) REFERENCES PERSON(id) ON UPDATE CASCADE ON DELETE CASCADE);
+
+CREATE TABLE ACTS_IN_EP(EpisodeID INT Unsigned, PersonID INT Unsigned, Primary Key(EpisodeID, PersonID), FOREIGN KEY (EpisodeID) REFERENCES EPISODE(id) ON UPDATE CASCADE ON DELETE CASCADE, FOREIGN KEY (PersonID) REFERENCES PERSON(id) ON UPDATE CASCADE ON DELETE CASCADE);
+
+CREATE TABLE DIRECTED_BY(MovieID MEDIUMINT Unsigned, PersonID INT Unsigned, Primary Key(MovieID, PersonID), FOREIGN KEY (MovieID) REFERENCES MOVIE(id) ON UPDATE CASCADE ON DELETE CASCADE, FOREIGN KEY (PersonID) REFERENCES PERSON(id) ON UPDATE CASCADE ON DELETE CASCADE);
+
+CREATE TABLE DIRECTED_BY_EP(EpisodeID INT Unsigned, PersonID INT Unsigned, Primary Key(EpisodeID, PersonID), FOREIGN KEY (EpisodeID) REFERENCES EPISODE(id) ON UPDATE CASCADE ON DELETE CASCADE, FOREIGN KEY (PersonID) REFERENCES PERSON(id) ON UPDATE CASCADE ON DELETE CASCADE);
+
+Insert INTO USER_ACCOUNT (id, Email, FirstName, LastName, Phone, StreetAddress, City, State, Zip, Salt, Hash) VALUES (NULL, "ticej2@winthrop.edu", "Jon", "Tice", "843-415-3690", "5 Gum Tree Road Apt I35", "Hilton Head Island", "SC", 29926, "9c8ffcdf2b", SHA1("9c8ffcdf2bpassword"));
+
+Insert INTO USER_ACCOUNT (id, Email, FirstName, LastName, Phone, StreetAddress, City, State, Zip, Salt, Hash) VALUES (NULL, "ryanj@gmail.com", "Ryan", "Johnson", "843-398-4256", "18 Deerwood Parkway", "Salt Lake City", "UT", 56428, "3c9hhcdf2b", SHA1("9c8hhcdf2bpassword"));
+
+Insert INTO USER_ACCOUNT (id, Email, FirstName, LastName, Phone, StreetAddress, City, State, Zip, Salt, Hash) VALUES (NULL, "ballinglam@aol.com", "Lamelo", "Ball", "972-343-3456", "34 Antwood Drive", "Greenville", "SC", 79284, "9ccphch32b", SHA1("9ccphch32bpassword"));
+
+Insert INTO USER_ACCOUNT (id, Email, FirstName, LastName, Phone, StreetAddress, City, State, Zip, Salt, Hash) VALUES (NULL, "tyjolo@yahoo.com", "Tyler", "Joseph", "452-983-0956", "5 Windy Court", "Ashville", "NC", 75624, "7ty4hch32b", SHA1("7ty4hch32bpassword"));
+
+Insert INTO USER_ACCOUNT (id, Email, FirstName, LastName, Phone, StreetAddress, City, State, Zip, Salt, Hash) VALUES (NULL, "raydimgarza@yahoo.com", "Raymond", "Garza", "498-453-0456", "98 Palmetto Bay Road", "Bluffton", "SC", 73474, "7ty4rup98b", SHA1("7ty4rup98bpassword"));
+
+Insert INTO USER_ACCOUNT (id, Email, FirstName, LastName, Phone, StreetAddress, City, State, Zip, Salt, Hash) VALUES (NULL, "pattyp@gmail.com", "Patricia", "Patton", "768-453-0238", "7 Ruin Street", "Hilton Head Island", "SC", 26753, "4ty4ruh36a", SHA1("4ty4ruh36apassword"));
+
+Insert INTO SUBSCRIPTION_TYPE (id, Name, Screens, Price, Description) VALUES (NULL, "Standard(SD)", 2, 7.95, "The standard package includes 2 screens to stream from across devices in standard definition.");
+
+Insert INTO SUBSCRIPTION_TYPE (id, Name, Screens, Price, Description) VALUES (NULL, "Standard(HD)", 2, 9.95, "The standard package includes 2 screens to stream from across devices in high definition.");
+
+Insert INTO SUBSCRIPTION_TYPE (id, Name, Screens, Price, Description) VALUES (NULL, "Delux(HD)", 5, 12.95, "The Deluxe package includes 5 screens to stream from across devices in high definition.");
+
+Insert INTO SUBSCRIPTION_TYPE (id, Name, Screens, Price, Description) VALUES (NULL, "Delux(SD)", 5, 10.95, "The Deluxe package includes 5 screens to stream from across devices in standard definition.");
+
+Insert INTO SUBSCRIPTION_TYPE (id, Name, Screens, Price, Description) VALUES (NULL, "Ultra(4K)", 3, 14.95, "The Ultra package includes 3 screens to stream from across devices in ultra 4k definition!");
+
+Insert INTO PAYMENT_METHOD (id, CreditCardNumber, CVV, ExpirationDate, AcctID) VALUES (NULL, "5465-4027-0054-9826", "345", '2020-09-01', 1);
+
+Insert INTO PAYMENT_METHOD (id, CreditCardNumber, CVV, ExpirationDate, AcctID) VALUES (NULL, "6465-4067-0064-7230", "455", '2019-10-01', 2);
+
+Insert INTO PAYMENT_METHOD (id, CreditCardNumber, CVV, ExpirationDate, AcctID) VALUES (NULL, "7825-4907-0454-9830", "267", '2021-07-01', 3);
+
+Insert INTO PAYMENT_METHOD (id, CreditCardNumber, CVV, ExpirationDate, AcctID) VALUES (NULL, "9045-3407-0234-1230", "677", '2021-09-01', 3);
+
+Insert INTO PAYMENT_METHOD (id, CreditCardNumber, CVV, ExpirationDate, AcctID) VALUES (NULL, "0045-7807-0564-1230", "234", '2019-04-01', 4);
+
+Insert INTO PAYMENT_METHOD (id, CreditCardNumber, CVV, ExpirationDate, AcctID) VALUES (NULL, "4025-7007-3464-1830", "274", '2020-05-01', 5);
+
+Insert INTO PAYMENT_METHOD (id, CreditCardNumber, CVV, ExpirationDate, AcctID) VALUES (NULL, "8925-3427-7764-3900", "464", '2022-05-01', 6);
+
+Insert INTO INVOICE (id, InvoiceID, ServiceStart, AcctID, SubID, PaymentID, PurchaseAmount) VALUES (NULL, 349874, '2017-11-08 10:31:15', 2, 3, 2, 12.95);
+
+Insert INTO INVOICE (id, InvoiceID, ServiceStart, AcctID, SubID, PaymentID, PurchaseAmount) VALUES (NULL, 983875, '2016-12-04 12:43:15', 1, 5, 1, 14.95);
+
+Insert INTO INVOICE (id, InvoiceID, ServiceStart, AcctID, SubID, PaymentID, PurchaseAmount) VALUES (NULL, 56775, '2016-05-21 02:34:15', 3, 3, 4, 12.95);
+
+Insert INTO INVOICE (id, InvoiceID, ServiceStart, AcctID, SubID, PaymentID, PurchaseAmount) VALUES (NULL, 45765, '2016-06-21 02:34:15', 3, 3, 3, 12.95);
+
+Insert INTO INVOICE (id, InvoiceID, ServiceStart, AcctID, SubID, PaymentID, PurchaseAmount) VALUES (NULL, 48965, '2016-07-21 02:34:15', 3, 3, 4, 12.95);
+
+Insert INTO INVOICE (id, InvoiceID, ServiceStart, AcctID, SubID, PaymentID, PurchaseAmount) VALUES (NULL, 1209575, '2017-09-07 08:21:18', 4, 1, 5, 7.95);
+
+Insert INTO INVOICE (id, InvoiceID, ServiceStart, AcctID, SubID, PaymentID, PurchaseAmount) VALUES (NULL, 436887, '2017-10-07 08:21:18', 4, 1, 5, 7.95);
+
+Insert INTO INVOICE (id, InvoiceID, ServiceStart, AcctID, SubID, PaymentID, PurchaseAmount) VALUES (NULL, 239889, '2017-06-07 09:34:27', 5, 3, 6, 12.95);
+
+Insert INTO INVOICE (id, InvoiceID, ServiceStart, AcctID, SubID, PaymentID, PurchaseAmount) VALUES (NULL, 3294875, '2017-07-07 09:34:27', 5, 3, 6, 12.95);
+
+Insert INTO INVOICE (id, InvoiceID, ServiceStart, AcctID, SubID, PaymentID, PurchaseAmount) VALUES (NULL, 3394805, '2015-03-15 05:16:12', 6, 2, 7, 9.95);
+
+Insert INTO PROFILE (id, Name, AcctID) VALUES (NULL, "Captain45", 1);
+
+Insert INTO PROFILE (id, Name, AcctID) VALUES (NULL, "JonT", 1);
+
+Insert INTO PROFILE (id, Name, AcctID) VALUES (NULL, "Cat Lover17", 2);
+
+Insert INTO PROFILE (id, Name, AcctID) VALUES (NULL, "KeanuWick", 3);
+
+Insert INTO PROFILE (id, Name, AcctID) VALUES (NULL, "Runner45", 3);
+
+Insert INTO PROFILE (id, Name, AcctID) VALUES (NULL, "The Owner", 3);
+
+Insert INTO PROFILE (id, Name, AcctID) VALUES (NULL, "Chris", 3);
+
+Insert INTO PROFILE (id, Name, AcctID) VALUES (NULL, "User", 4);
+
+Insert INTO PROFILE (id, Name, AcctID) VALUES (NULL, "To Be Determined", 5);
+
+Insert INTO PROFILE (id, Name, AcctID) VALUES (NULL, "Patty", 6);
+
+Insert INTO GENRE (id, Genre) VALUES (NULL, "Action");
+
+Insert INTO GENRE (id, Genre) VALUES (NULL, "Horrer");
+
+Insert INTO GENRE (id, Genre) VALUES (NULL, "Thriller");
+
+Insert INTO GENRE (id, Genre) VALUES (NULL, "Drama");
+
+Insert INTO GENRE (id, Genre) VALUES (NULL, "Documentary");
+
+Insert INTO GENRE (id, Genre) VALUES (NULL, "Adventure");
+
+Insert INTO GENRE (id, Genre) VALUES (NULL, "Comedy");
+
+Insert INTO GENRE (id, Genre) VALUES (NULL, "SciFi");
+
+Insert INTO GENRE (id, Genre) VALUES (NULL, "Romance");
+
+Insert INTO MOVIE (id, Name, YearReleased, Runtime, Description) VALUES (NULL, "Avatar", '2009-12-18', 162, "On the lush alien world of Pandora live the Na'vi, beings who appear primitive but are highly evolved. Because the planet's environment is poisonous, human/Na'vi hybrids, called Avatars, must link to human minds to allow for free movement on Pandora.");
+
+Insert INTO MOVIE (id, Name, YearReleased, Runtime, Description) VALUES (NULL, "Titanic", '1997-12-19', 195, "James Cameron's Titanic is an epic, action-packed romance set against the ill-fated maiden voyage of the R.M.S.");
+
+Insert INTO MOVIE (id, Name, YearReleased, Runtime, Description) VALUES (NULL, "Aliens", '1986-7-18', 154, "After floating in space for 57 years, Lt. Ripley's (Sigourney Weaver) shuttle is found by a deep space salvage team. Upon arriving at LV-426, the marines find only one survivor.");
+
+Insert INTO MOVIE (id, Name, YearReleased, Runtime, Description) VALUES (NULL, "Terminator 2: Judgement Day", '1991-7-3', 156, "Young John Connor (Edward Furlong), the key to civilization's victory over a future robot uprising, is the target of the shape-shifting T-1000, a Terminator sent from the future to kill him.");
+
+Insert INTO MOVIE (id, Name, YearReleased, Runtime, Description) VALUES (NULL, "Alien", '1979-5-25', 117, "In deep space, the crew of the commercial starship Nostromo is awakened from their cryo-sleep capsules halfway through their journey home to investigate a distress call from an alien vessel");
+
+Insert INTO MOVIE (id, Name, YearReleased, Runtime, Description) VALUES (NULL, "Shaun of the Dead", '2004-9-24', 100, "When the town is inexplicably overrun with zombies, Shaun must rise to the occasion and protect both Liz and his mother (Penelope Wilton).");
+
+Insert INTO TV_SHOW (id, Name, YearReleased, Description) VALUES (NULL, "House", '2004-11-16', "At fictional Princeton Plainsboro Teaching Hospital in New Jersey, prickly genius Dr. Gregory House tackles health mysteries as would a medical Sherlock Holmes, all the while playing mind games with colleagues.");
+
+Insert INTO TV_SHOW (id, Name, YearReleased, Description) VALUES (NULL, "Eureka", '2006-7-18', "U.S. Marshal Jack Carter becomes stranded in a town populated with many of the world's geniuses.");
+
+Insert INTO TV_SHOW (id, Name, YearReleased, Description) VALUES (NULL, "Ozark", '2017-7-21', "Jason Bateman as Marty Byrde, a financial planner who relocates his family from Chicago to a summer resort community in the Ozarks.");
+
+Insert INTO SEASON (id, Name, Number, TVShowID) VALUES (NULL, "Season 1", 1, 1);
+
+Insert INTO SEASON (id, Name, Number, TVShowID) VALUES (NULL, "Season 2", 2, 1);
+
+Insert INTO SEASON (id, Name, Number, TVShowID) VALUES (NULL, "Season 3", 3, 1);
+
+Insert INTO SEASON (id, Name, Number, TVShowID) VALUES (NULL, "Season 4", 4, 1);
+
+Insert INTO SEASON (id, Name, Number, TVShowID) VALUES (NULL, "Season 1", 1, 2);
+
+Insert INTO SEASON (id, Name, Number, TVShowID) VALUES (NULL, "Season 2", 2, 2);
+
+Insert INTO SEASON (id, Name, Number, TVShowID) VALUES (NULL, "Season 1", 1, 3);
+
+Insert INTO EPISODE (id, Description, Number, Runtime, Name, SeasonID) VALUES (NULL, "", 1, 50, "Pilot", 1);
+
+Insert INTO EPISODE (id, Description, Number, Runtime, Name, SeasonID) VALUES (NULL, "", 2, 51, "Paternity", 1);
+
+Insert INTO EPISODE (id, Description, Number, Runtime, Name, SeasonID) VALUES (NULL, "", 3, 49, "Occam's Razor", 1);
+
+Insert INTO EPISODE (id, Description, Number, Runtime, Name, SeasonID) VALUES (NULL, "", 4, 49, "Maternity", 1);
+
+Insert INTO EPISODE (id, Description, Number, Runtime, Name, SeasonID) VALUES (NULL, "", 1, 50, "The Socratic Method", 2);
+
+Insert INTO EPISODE (id, Description, Number, Runtime, Name, SeasonID) VALUES (NULL, "", 2, 51, "Damned if you do", 2);
+
+Insert INTO EPISODE (id, Description, Number, Runtime, Name, SeasonID) VALUES (NULL, "", 3, 49, "DNR", 2);
+
+Insert INTO EPISODE (id, Description, Number, Runtime, Name, SeasonID) VALUES (NULL, "", 4, 49, "Poison", 2);
+
+Insert INTO EPISODE (id, Description, Number, Runtime, Name, SeasonID) VALUES (NULL, "", 1, 37, "Pilot", 5);
+
+Insert INTO EPISODE (id, Description, Number, Runtime, Name, SeasonID) VALUES (NULL, "", 2, 38, "Blah", 5);
+
+Insert INTO EPISODE (id, Description, Number, Runtime, Name, SeasonID) VALUES (NULL, "", 3, 35, "Occ", 5);
+
+Insert INTO EPISODE (id, Description, Number, Runtime, Name, SeasonID) VALUES (NULL, "", 4, 40, "Matt", 5);
+
+Insert INTO TYPE_OF (MovieID, GenreID) VALUES (1, 1);
+
+Insert INTO TYPE_OF (MovieID, GenreID) VALUES (1, 6);
+
+Insert INTO TYPE_OF (MovieID, GenreID) VALUES (2, 9);
+
+Insert INTO TYPE_OF (MovieID, GenreID) VALUES (3, 8);
+
+Insert INTO TYPE_OF (MovieID, GenreID) VALUES (3, 2);
+
+Insert INTO TYPE_OF (MovieID, GenreID) VALUES (4, 1);
+
+Insert INTO TYPE_OF (MovieID, GenreID) VALUES (5, 2);
+
+Insert INTO TYPE_OF (MovieID, GenreID) VALUES (6, 7);
+
+Insert INTO VIEWS_MOVIE (MovieID, ProfileID, PercentComplete) VALUES (1, 2, 51.15);
+
+Insert INTO VIEWS_MOVIE (MovieID, ProfileID, PercentComplete) VALUES (1, 3, 75.15);
+
+Insert INTO VIEWS_MOVIE (MovieID, ProfileID, PercentComplete) VALUES (6, 2, 65.89);
+
+Insert INTO VIEWS_MOVIE (MovieID, ProfileID, PercentComplete) VALUES (5, 1, 23.89);
+
+Insert INTO VIEWS_MOVIE (MovieID, ProfileID, PercentComplete) VALUES (6, 6, 60.75);
+
+Insert INTO VIEWS_MOVIE (MovieID, ProfileID, PercentComplete) VALUES (3, 5, 45.79);
+
+Insert INTO VIEWS_MOVIE (MovieID, ProfileID, PercentComplete) VALUES (1, 6, 100.00);
+
+Insert INTO VIEWS_MOVIE (MovieID, ProfileID, PercentComplete) VALUES (1, 10, 62.89);
+
+Insert INTO VIEWS_MOVIE (MovieID, ProfileID, PercentComplete) VALUES (5, 8, 88.34);
+
+Insert INTO VIEWS_EP (EpisodeID, ProfileID, PercentComplete) VALUES (7, 5, 55.30);
+
+Insert INTO VIEWS_EP (EpisodeID, ProfileID, PercentComplete) VALUES (8, 5, 90.30);
+
+Insert INTO VIEWS_EP (EpisodeID, ProfileID, PercentComplete) VALUES (1, 7, 65.30);
+
+Insert INTO VIEWS_EP (EpisodeID, ProfileID, PercentComplete) VALUES (10, 3, 34.30);
+
+Insert INTO PERSON (id, FirstName, LastName, Sex) VALUES (NULL, "Hugh", "Laurie", 'M');
+
+Insert INTO PERSON (id, FirstName, LastName, Sex) VALUES (NULL, "James", "Cameron", 'M');
+
+Insert INTO PERSON (id, FirstName, LastName, Sex) VALUES (NULL, "Ridley", "Scott", 'M');
+
+Insert INTO PERSON (id, FirstName, LastName, Sex) VALUES (NULL, "Edgar", "Write", 'M');
+
+Insert INTO PERSON (id, FirstName, LastName, Sex) VALUES (NULL, "Greg", "Yaitanes", 'M');
+
+Insert INTO PERSON (id, FirstName, LastName, Sex) VALUES (NULL, "Jason", "Bateman", 'M');
+
+Insert INTO PERSON (id, FirstName, LastName, Sex) VALUES (NULL, "Colin", "Ferguson", 'M');
+
+Insert INTO PERSON (id, FirstName, LastName, Sex) VALUES (NULL, "Lisa", "Edelstein", 'F');
+
+Insert INTO PERSON (id, FirstName, LastName, Sex) VALUES (NULL, "Jennifer", "Morrison", 'F');
+
+Insert INTO PERSON (id, FirstName, LastName, Sex) VALUES (NULL, "Arnold", "Schwarzenegger", 'M');
+
+Insert INTO PERSON (id, FirstName, LastName, Sex) VALUES (NULL, "Sigourney", "Weaver", 'F');
+
+Insert INTO ACTS_IN_MOV (MovieID, PersonID) VALUES (4, 10);
+
+Insert INTO ACTS_IN_MOV (MovieID, PersonID) VALUES (1, 11);
+
+Insert INTO ACTS_IN_MOV (MovieID, PersonID) VALUES (3, 11);
+
+Insert INTO ACTS_IN_MOV (MovieID, PersonID) VALUES (5, 11);
+
+Insert INTO ACTS_IN_EP (EpisodeID, PersonID) VALUES (1, 1); 
+
+Insert INTO ACTS_IN_EP (EpisodeID, PersonID) VALUES (2, 1); 
+
+Insert INTO ACTS_IN_EP (EpisodeID, PersonID) VALUES (3, 1); 
+
+Insert INTO ACTS_IN_EP (EpisodeID, PersonID) VALUES (4, 1); 
+
+Insert INTO ACTS_IN_EP (EpisodeID, PersonID) VALUES (5, 1); 
+
+Insert INTO ACTS_IN_EP (EpisodeID, PersonID) VALUES (6, 1); 
+
+Insert INTO ACTS_IN_EP (EpisodeID, PersonID) VALUES (7, 1); 
+
+Insert INTO ACTS_IN_EP (EpisodeID, PersonID) VALUES (8, 1); 
+
+Insert INTO ACTS_IN_EP (EpisodeID, PersonID) VALUES (9, 6); 
+
+Insert INTO ACTS_IN_EP (EpisodeID, PersonID) VALUES (10, 6); 
+
+Insert INTO ACTS_IN_EP (EpisodeID, PersonID) VALUES (11, 6); 
+
+Insert INTO ACTS_IN_EP (EpisodeID, PersonID) VALUES (12, 6);
+
+Insert INTO DIRECTED_BY (MovieID, PersonID) VALUES (1, 2);
+
+Insert INTO DIRECTED_BY (MovieID, PersonID) VALUES (2, 2);
+
+Insert INTO DIRECTED_BY (MovieID, PersonID) VALUES (3, 2);
+
+Insert INTO DIRECTED_BY (MovieID, PersonID) VALUES (4, 2);
+
+Insert INTO DIRECTED_BY (MovieID, PersonID) VALUES (5, 3);
+
+Insert INTO DIRECTED_BY (MovieID, PersonID) VALUES (6, 4);
+
+Insert INTO DIRECTED_BY_EP (EpisodeID, PersonID) VALUES (1, 5);
+
+Insert INTO DIRECTED_BY_EP (EpisodeID, PersonID) VALUES (2, 5);
+
+Insert INTO DIRECTED_BY_EP (EpisodeID, PersonID) VALUES (3, 5);
+
+Insert INTO DIRECTED_BY_EP (EpisodeID, PersonID) VALUES (4, 5);
+
+Insert INTO DIRECTED_BY_EP (EpisodeID, PersonID) VALUES (5, 5);
+
+Insert INTO DIRECTED_BY_EP (EpisodeID, PersonID) VALUES (6, 5);
+
+Insert INTO DIRECTED_BY_EP (EpisodeID, PersonID) VALUES (7, 5);
+
+Insert INTO DIRECTED_BY_EP (EpisodeID, PersonID) VALUES (8, 5);
+
+Insert INTO DIRECTED_BY_EP (EpisodeID, PersonID) VALUES (9, 6);
+
+Insert INTO DIRECTED_BY_EP (EpisodeID, PersonID) VALUES (10, 6);
+
+Insert INTO DIRECTED_BY_EP (EpisodeID, PersonID) VALUES (11, 6);
+
+Insert INTO DIRECTED_BY_EP (EpisodeID, PersonID) VALUES (12, 6);
+
+SELECT USER_ACCOUNT.FirstName, USER_ACCOUNT.LastName, USER_ACCOUNT.Email, Count(*) FROM PROFILE LEFT JOIN USER_ACCOUNT ON USER_ACCOUNT.id = PROFILE.AcctID GROUP BY PROFILE.AcctID ORDER BY COUNT(*) DESC LIMIT 1;
+
+SELECT PERSON.FirstName, PERSON.LastName, Count(*) FROM DIRECTED_BY_EP LEFT JOIN PERSON ON PERSON.id = DIRECTED_BY_EP.PersonID GROUP BY PersonID ORDER BY COUNT(*) DESC LIMIT 1;
+
+SELECT  MOVIE.Name, PERSON.FirstName, PERSON.LastName FROM DIRECTED_BY LEFT JOIN PERSON ON PERSON.id = DIRECTED_BY.PersonID LEFT JOIN MOVIE ON MOVIE.id = DIRECTED_BY.MovieID WHERE PERSON.FirstName = "James" AND PERSON.LastName = "Cameron";
+
+SELECT MOVIE.Name, COUNT(*) FROM VIEWS_MOVIE LEFT JOIN MOVIE ON MOVIE.id = VIEWS_MOVIE.MovieID GROUP BY VIEWS_MOVIE.MovieID ORDER BY COUNT(*) DESC LIMIT 1;
+
+SELECT DISTINCT MOVIE.Name, MOVIE.Description FROM VIEWS_MOVIE LEFT JOIN MOVIE ON MOVIE.id = VIEWS_MOVIE.MovieID WHERE VIEWS_MOVIE.PercentComplete > 50.0;
+
+DROP TABLE DIRECTED_BY_EP, DIRECTED_BY, ACTS_IN_EP, ACTS_IN_MOV, PERSON, VIEWS_EP, EPISODE, SEASON, TV_SHOW, VIEWS_MOVIE, TYPE_OF, GENRE, MOVIE, PROFILE, INVOICE, PAYMENT_METHOD, SUBSCRIPTION_TYPE, USER_ACCOUNT;
+
+-----------------------------------------------------------------------------
+
+1-User with the most amount of profiles.
+
+SELECT USER_ACCOUNT.FirstName, USER_ACCOUNT.LastName, USER_ACCOUNT.Email, Count(*) FROM PROFILE LEFT JOIN USER_ACCOUNT ON USER_ACCOUNT.id = PROFILE.AcctID GROUP BY PROFILE.AcctID ORDER BY COUNT(*) DESC LIMIT 1;
+
+2-Person who directed the most amount of episodes.
+
+SELECT PERSON.FirstName, PERSON.LastName, Count(*) FROM DIRECTED_BY_EP LEFT JOIN PERSON ON PERSON.id = DIRECTED_BY_EP.PersonID GROUP BY PersonID ORDER BY COUNT(*) DESC LIMIT 1;
+
+3-All movies directed by a specific person.
+
+SELECT  MOVIE.Name, PERSON.FirstName, PERSON.LastName FROM DIRECTED_BY LEFT JOIN PERSON ON PERSON.id = DIRECTED_BY.PersonID LEFT JOIN MOVIE ON MOVIE.id = DIRECTED_BY.MovieID WHERE PERSON.FirstName = "James" AND PERSON.LastName = "Cameron";
+
+4- The most viewed movie.
+
+SELECT MOVIE.Name, COUNT(*) FROM VIEWS_MOVIE LEFT JOIN MOVIE ON MOVIE.id = VIEWS_MOVIE.MovieID GROUP BY VIEWS_MOVIE.MovieID ORDER BY COUNT(*) DESC LIMIT 1;
+
+5-All movies where the users are over half way done with the movie.
+
+SELECT DISTINCT MOVIE.Name, MOVIE.Description FROM VIEWS_MOVIE LEFT JOIN MOVIE ON MOVIE.id = VIEWS_MOVIE.MovieID WHERE VIEWS_MOVIE.PercentComplete > 50.0;

@@ -1,0 +1,51 @@
+CREATE TABLE User(id INT UNSIGNED NOT NULL PRIMARY KEY auto_increment, Username VARCHAR(64) NOT NULL UNIQUE KEY, Salt CHAR(10) NOT NULL, Hash CHAR(40) NOT NULL, Fname VARCHAR(450) NOT NULL, Lname VARCHAR(450) NOT NULL, Email VARCHAR(254) NOT NULL);
+
+CREATE TABLE Post(id INT UNSIGNED NOT NULL PRIMARY KEY auto_increment, Created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, Title VARCHAR(60) NOT NULL DEFAULT '', Content MEDIUMTEXT NOT NULL, Published DATE NOT NULL, UserID INT UNSIGNED NOT NULL, FOREIGN KEY (UserID) REFERENCES User(id) ON UPDATE CASCADE ON DELETE CASCADE);
+
+CREATE TABLE Comment(id INT UNSIGNED NOT NULL PRIMARY KEY auto_increment, Created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, Content MEDIUMTEXT NOT NULL, UserID INT UNSIGNED NOT NULL, PostID INT UNSIGNED NOT NULL, FOREIGN KEY (UserID) REFERENCES User(id) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY (PostID) REFERENCES Post(id) ON UPDATE CASCADE ON DELETE CASCADE);
+
+Insert INTO User (id, Username, Salt, Hash, Fname, Lname, Email) VALUES (NULL, "besmera", "9c8ffcdf2b", SHA1("9c8ffcdf2bpassword"), "Andrew", "Besmer", "besmera@winthrop.edu");
+
+Insert INTO User (id, Username, Salt, Hash, Fname, Lname, Email) VALUES (NULL, "williamc", "15f4d183d4", SHA1("15f4d183d4password"), "Will", "Cats", "willc@winthrop.edu");
+
+Insert INTO User  (id, Username, Salt, Hash, Fname, Lname, Email) VALUES (NULL, "smithj", "2053c865b4", SHA1("2053c865b4password"), "John", "Smith", "smithj@winthrop.edu");
+
+Insert INTO User  (id, Username, Salt, Hash, Fname, Lname, Email) VALUES (NULL, "dots", "9c388e08e4", SHA1("9c388e08e4password"), "Slash", "Dot", "dots@winthrop.edu");
+
+Insert INTO Post (id, Created, Title, Content, Published, UserID) VALUES (NULL, '2015-05-16 05:24:34', "The End of the World!", "Something that seems overwhelming or you're in a bad situation and it seems like it's the end of the world or whatever, it's not.", '2015-06-03', 1);
+
+Insert INTO Post (id, Created, Content, Published, UserID) VALUES (NULL, NULL, "BLAH BLAH BLAH TEXT", '2017-10-29', 2);
+
+Insert INTO Comment (id, Created, Content, UserID, PostID) VALUES (NULL, '2017-11-08 10:31:15', "Wow! very insightful!", 3, 2);
+
+Insert INTO Comment (id, Created, Content, UserID, PostID) VALUES (NULL, NULL, "Do you have anything better to do with your time?", 4, 2);
+
+Insert INTO Comment (id, Created, Content, UserID, PostID) VALUES (NULL, '2016-07-08 09:32:07', "Couldn't agree more!", 4, 1);
+
+SELECT * FROM User;
+
+SELECT * FROM Post;
+
+SELECT * FROM Comment;
+
+SELECT Post.Created, Post.Title, Post.Content, User.Fname, User.Lname, User.Email FROM Post JOIN User WHERE Post.UserID = User.id;
+
+SELECT Post.Created, Post.Title, Post.Content, Author.Fname, Author.Lname, Author.Email, Comment.Content, Comment.Created, Commenter.Fname, Commenter.Lname, Commenter.Email FROM Post, Comment, User AS Commenter, User AS Author WHERE Post.id = 2 AND Post.UserID = Author.id AND Commenter.id = Comment.UserID AND Comment.PostID = Author.id;
+
+DELETE FROM User WHERE User.id = 3;
+
+SELECT * FROM Comment;
+
+DELETE FROM Post WHERE Post.id = 2;
+
+SELECT * FROM Comment;
+
+DELETE FROM User WHERE User.id = 1;
+
+SELECT * FROM User;
+
+SELECT * FROM Post;
+
+SELECT * FROM Comment;
+
+DROP TABLE Comment, Post, User;

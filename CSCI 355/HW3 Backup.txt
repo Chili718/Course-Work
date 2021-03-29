@@ -1,0 +1,23 @@
+1-
+
+SELECT countries.name, COUNT(*) FROM ip4 JOIN countries ON ip4.country = countries.id GROUP BY countries.name ORDER BY COUNT(*) DESC LIMIT 10;
+
+2-
+
+SELECT cityByCountry.name, COUNT(*) FROM ip4 JOIN cityByCountry ON cityByCountry.city = ip4.city JOIN countries ON cityByCountry.country = countries.id AND countries.name = "United States" GROUP BY cityByCountry.name ORDER BY COUNT(*) DESC LIMIT 10;
+
+3- 
+
+SELECT cityByCountry.name, COUNT(*) FROM ip4 JOIN cityByCountry ON cityByCountry.city = ip4.city JOIN countries ON cityByCountry.country = countries.id AND countries.name = "United States" GROUP BY cityByCountry.name HAVING COUNT(ip4.ip) < 5000 AND COUNT(ip4.ip) > 4000 ORDER BY COUNT(*);
+
+4- 
+
+SELECT cityByCountry.state, cityByCountry.name, count(ip4.ip) as numIP FROM cityByCountry LEFT JOIN ip4 ON cityByCountry.city = ip4.city JOIN countries ON cityByCountry.country = countries.id AND countries.name = "UNITED STATES" AND cityByCountry.state <> "" GROUP BY cityByCountry.city ORDER BY cityByCountry.state ASC;
+
+SELECT quip.state, AVG(numIP) as avgNumIP FROM (SELECT cityByCountry.state, cityByCountry.name, count(ip4.ip) as numIP FROM cityByCountry LEFT JOIN ip4 ON cityByCountry.city = ip4.city JOIN countries ON cityByCountry.country = countries.id AND countries.name = "UNITED STATES" AND cityByCountry.state <> "" GROUP BY cityByCountry.city ORDER BY cityByCountry.state ASC) as quip GROUP BY quip.state ORDER BY quip.state ASC;
+
+5-
+
+SELECT AVG(avgNumIP) FROM (SELECT quip.state, AVG(numIP) as avgNumIP FROM (SELECT cityByCountry.state, cityByCountry.name, count(ip4.ip) as numIP FROM cityByCountry LEFT JOIN ip4 ON cityByCountry.city = ip4.city JOIN countries ON cityByCountry.country = countries.id AND countries.name = "UNITED STATES" AND cityByCountry.state <> "" GROUP BY cityByCountry.city ORDER BY cityByCountry.state ASC) as quip GROUP BY quip.state ORDER BY quip.state ASC) as subsub;
+
+SELECT quip.state, AVG(numIP) as avgNumIP FROM (SELECT cityByCountry.state, cityByCountry.name, count(ip4.ip) as numIP FROM cityByCountry LEFT JOIN ip4 ON cityByCountry.city = ip4.city JOIN countries ON cityByCountry.country = countries.id AND countries.name = "UNITED STATES" AND cityByCountry.state <> "" GROUP BY cityByCountry.city ORDER BY cityByCountry.state ASC) as quip GROUP BY quip.state HAVING avgNumIP > (SELECT AVG(numIP2) FROM (SELECT quip.state, AVG(numIP) as numIP2 FROM (SELECT cityByCountry.state, cityByCountry.name, count(ip4.ip) as numIP FROM cityByCountry LEFT JOIN ip4 ON cityByCountry.city = ip4.city JOIN countries ON cityByCountry.country = countries.id AND countries.name = "UNITED STATES" AND cityByCountry.state <> "" GROUP BY cityByCountry.city ORDER BY cityByCountry.state ASC) as quip GROUP BY quip.state ORDER BY quip.state ASC) as subsub) ORDER BY quip.state ASC;
